@@ -27,8 +27,8 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git://github.com/Jurrie/liquibase-envers-support.git</connection>
-    <developerConnection>scm:git:ssh://github.com:Jurrie/liquibase-envers-support.git</developerConnection>
+    <connection>scm:git:git@github.com:Jurrie/liquibase-envers-support.git</connection>
+    <developerConnection>scm:git:git@github.com:Jurrie/liquibase-envers-support.git</developerConnection>
     <url>https://github.com/Jurrie/liquibase-enver-support/tree/master</url>
   </scm>
 
