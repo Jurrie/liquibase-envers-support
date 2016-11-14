@@ -1,10 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.jurr.liquibase</groupId>
   <artifactId>liquibase-envers-support</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <packaging>jar</packaging>
   <name>Liquibase Envers plugin</name>
   <description>Liquibase plugin that automatically inserts Envers revisions after each "tag database" statement.</description>
@@ -30,6 +29,7 @@
     <connection>scm:git:git@github.com:Jurrie/liquibase-envers-support.git</connection>
     <developerConnection>scm:git:git@github.com:Jurrie/liquibase-envers-support.git</developerConnection>
     <url>https://github.com/Jurrie/liquibase-enver-support/tree/master</url>
+    <tag>liquibase-envers-support-1.0.0</tag>
   </scm>
 
   <properties>
