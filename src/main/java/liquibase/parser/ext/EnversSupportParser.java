@@ -83,6 +83,7 @@ public class EnversSupportParser implements ChangeLogParser
 	private ChangeSet findTemplatesAndTagDatabaseChangeSets(final List<ChangeSet> changeSets, final List<TagDatabaseChange> tagDatabaseChanges)
 	{
 		ChangeSet enversTemplateChangeSet = null;
+		TagDatabaseChange lastFoundTagDatabaseChange = null;
 		for (int i = 0; i < changeSets.size(); i++)
 		{
 			final ChangeSet changeSet = changeSets.get(i);
@@ -101,14 +102,14 @@ public class EnversSupportParser implements ChangeLogParser
 				final TagDatabaseChange tagDatabaseChange = findTagDatabaseChangeInChangeSet(changeSet);
 				if (tagDatabaseChange != null)
 				{
-					if (i == changeSets.size() - 1)
-					{
-						// Last changeSet is tag database - don't add another Envers revision (or it will become an empty revision)
-					}
-					else
-					{
-						tagDatabaseChanges.add(tagDatabaseChange);
-					}
+					lastFoundTagDatabaseChange = tagDatabaseChange;
+				}
+				else if (lastFoundTagDatabaseChange != null)
+				{
+					// ChangeSet did not contain a tag database change, sot it's a 'normal' changeSet.
+					// Because the lastFoundTagDatabaseChange is not null, we know there will be a 'normal' changeSet after the lastFoundTagDatabaseChange.
+					tagDatabaseChanges.add(lastFoundTagDatabaseChange);
+					lastFoundTagDatabaseChange = null;
 				}
 			}
 		}
