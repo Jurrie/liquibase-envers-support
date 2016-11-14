@@ -5,7 +5,6 @@ import java.util.List;
 
 import liquibase.change.Change;
 import liquibase.change.core.TagDatabaseChange;
-import liquibase.change.ext.TemplateSupportChange;
 import liquibase.changelog.ChangeLogParameters;
 import liquibase.changelog.ChangeSet;
 import liquibase.changelog.DatabaseChangeLog;
@@ -15,6 +14,7 @@ import liquibase.parser.ChangeLogParser;
 import liquibase.parser.ChangeLogParserFactory;
 import liquibase.resource.ResourceAccessor;
 import liquibase.util.StringUtils;
+import org.jurr.liquibase.envers.TemplateSupportChange;
 
 public class EnversSupportParser implements ChangeLogParser
 {

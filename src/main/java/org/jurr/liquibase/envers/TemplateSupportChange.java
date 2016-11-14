@@ -1,4 +1,4 @@
-package liquibase.change.ext;
+package org.jurr.liquibase.envers;
 
 import java.util.Map;
 
