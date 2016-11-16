@@ -13,6 +13,7 @@ import liquibase.exception.LiquibaseException;
 import liquibase.parser.ChangeLogParser;
 import liquibase.parser.ChangeLogParserFactory;
 import liquibase.resource.ResourceAccessor;
+import liquibase.servicelocator.PrioritizedService;
 import liquibase.util.StringUtils;
 import org.jurr.liquibase.envers.TemplateSupportChange;
 
@@ -24,7 +25,7 @@ public class EnversSupportParser implements ChangeLogParser
 	@Override
 	public int getPriority()
 	{
-		return ChangeLogParser.PRIORITY_DATABASE + 1;
+		return PrioritizedService.PRIORITY_DATABASE + 1;
 	}
 
 	@Override
