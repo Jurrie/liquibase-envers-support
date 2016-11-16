@@ -4,11 +4,11 @@ This project contains a Liquibase extension that will allow you to automatically
 
 ## By default this extension does nothing
 
-This extension needs to be enabled before it will actually do anything. The extension is enabled by defining a template changeSet. All changeSets *before* the template changeSet  will be ignored. So, effectively, this extension will start working *after* the your template changeSet.
+This extension needs to be enabled before it will actually do anything. The extension is enabled by defining a template changeSet. All `<tagDatabase>` changeSets *before* the template changeSet will be left alone. So, effectively, this extension will start working *after* the template changeSet.
 
 ## Defining the template changeSet
 
-A template changeSet is just like a normal changeSet, only with a specific author. The author needs to be "liquibase-envers-support plugin". The rest of the template changeSet is copied and placed below a `<tagDatabase>` changeSet by the extension.
+A template changeSet is define much like a normal changeSet, only with a specific author. The author needs to be "liquibase-envers-support plugin". The rest of the template changeSet is copied and placed below a `<tagDatabase>` changeSet by the extension. Of course, the template changeSet is removed from its original location (because it's a template).
 
 ### Placeholders
 In the template, you can use placeholders. These are replaced by actual values by the liquibase-envers-support extension. The following placeholders are available:
