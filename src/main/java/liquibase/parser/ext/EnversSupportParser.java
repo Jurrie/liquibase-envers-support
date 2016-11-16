@@ -77,7 +77,7 @@ public class EnversSupportParser implements ChangeLogParser
 			final String currentVersion = tagDatabaseChanges.size() == i + 1 ? VERSION_NAME_AFTER_LAST_TAG : tagDatabaseChanges.get(i + 1).getTag();
 			final ChangeSet changeSet = tagDatabaseChanges.get(i).getChangeSet();
 
-			appendEnversChangeSet(changeSet, previousVersion, currentVersion, enversTemplateChangeSet);
+			appendEnversChangeSet(databaseChangeLog, changeSet, previousVersion, currentVersion, enversTemplateChangeSet);
 		}
 	}
 
@@ -132,15 +132,18 @@ public class EnversSupportParser implements ChangeLogParser
 		return null;
 	}
 
-	private void appendEnversChangeSet(final ChangeSet afterChangeSet, final String previousVersion, final String currentVersion, final ChangeSet enversTemplateChangeSet)
+	private void appendEnversChangeSet(final DatabaseChangeLog masterChangeLog, final ChangeSet afterChangeSet, final String previousVersion, final String currentVersion, final ChangeSet enversTemplateChangeSet)
 	{
-		final DatabaseChangeLog changeLog = afterChangeSet.getChangeLog();
+		// The changeSetChangeLog is the DatabaseChangeLog that contains the changeSet directly.
+		// The mainChangeLog is the "master" file - it's the file that's run by Liquibase.
+		// Because of the <include /> directive, these two variables *can* differ.
+		final DatabaseChangeLog changeSetChangeLog = afterChangeSet.getChangeLog();
 
 		final String changeSetId = EnversSupportUtils.replacePlaceholders(enversTemplateChangeSet.getId(), previousVersion, currentVersion);
 		final String contextList = StringUtils.join(enversTemplateChangeSet.getContexts(), ",");
 		final String dbmsList = StringUtils.join(enversTemplateChangeSet.getDbmsSet(), ",");
 
-		final ChangeSet enversChangeSet = new ChangeSet(changeSetId, ENVERS_SUPPORT_CHANGESET_AUTHOR, enversTemplateChangeSet.isAlwaysRun(), enversTemplateChangeSet.isRunOnChange(), afterChangeSet.getFilePath(), contextList, dbmsList, enversTemplateChangeSet.isRunInTransaction(), enversTemplateChangeSet.getObjectQuotingStrategy(), changeLog);
+		final ChangeSet enversChangeSet = new ChangeSet(changeSetId, ENVERS_SUPPORT_CHANGESET_AUTHOR, enversTemplateChangeSet.isAlwaysRun(), enversTemplateChangeSet.isRunOnChange(), afterChangeSet.getFilePath(), contextList, dbmsList, enversTemplateChangeSet.isRunInTransaction(), enversTemplateChangeSet.getObjectQuotingStrategy(), changeSetChangeLog);
 
 		for (Change change : enversTemplateChangeSet.getChanges())
 		{
@@ -151,8 +154,14 @@ public class EnversSupportParser implements ChangeLogParser
 			enversChangeSet.addRollbackChange(new TemplateSupportChange(change, previousVersion, currentVersion));
 		}
 
-		int index = changeLog.getChangeSets().indexOf(afterChangeSet) + 1;
-		changeLog.getChangeSets().add(index, enversChangeSet);
+		int changeSetChangeLogInsertIndex = changeSetChangeLog.getChangeSets().indexOf(afterChangeSet) + 1;
+		changeSetChangeLog.getChangeSets().add(changeSetChangeLogInsertIndex, enversChangeSet);
+
+		if (masterChangeLog != changeSetChangeLog)
+		{
+			int masterChangeLogInsertIndex = masterChangeLog.getChangeSets().indexOf(afterChangeSet) + 1;
+			masterChangeLog.getChangeSets().add(masterChangeLogInsertIndex, enversChangeSet);
+		}
 	}
 
 	@Override
