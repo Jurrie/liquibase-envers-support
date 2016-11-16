@@ -3,7 +3,7 @@
 
   <groupId>org.jurr.liquibase</groupId>
   <artifactId>liquibase-envers-support</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>Liquibase Envers plugin</name>
   <description>Liquibase plugin that automatically inserts Envers revisions after each "tag database" statement.</description>
@@ -29,7 +29,7 @@
     <connection>scm:git:git@github.com:Jurrie/liquibase-envers-support.git</connection>
     <developerConnection>scm:git:git@github.com:Jurrie/liquibase-envers-support.git</developerConnection>
     <url>https://github.com/Jurrie/liquibase-enver-support/tree/master</url>
-    <tag>liquibase-envers-support-1.0.1</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
