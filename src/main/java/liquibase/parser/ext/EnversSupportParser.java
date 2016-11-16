@@ -107,7 +107,7 @@ public class EnversSupportParser implements ChangeLogParser
 				}
 				else if (lastFoundTagDatabaseChange != null)
 				{
-					// ChangeSet did not contain a tag database change, sot it's a 'normal' changeSet.
+					// ChangeSet did not contain a tag database change, so it's a 'normal' changeSet.
 					// Because the lastFoundTagDatabaseChange is not null, we know there will be a 'normal' changeSet after the lastFoundTagDatabaseChange.
 					tagDatabaseChanges.add(lastFoundTagDatabaseChange);
 					lastFoundTagDatabaseChange = null;
