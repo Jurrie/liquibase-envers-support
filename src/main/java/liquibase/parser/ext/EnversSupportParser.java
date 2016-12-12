@@ -64,8 +64,9 @@ public class EnversSupportParser implements ChangeLogParser
 	{
 		final List<ChangeSet> changeSets = databaseChangeLog.getChangeSets();
 
-		final List<TagDatabaseChange> tagDatabaseChanges = new LinkedList<TagDatabaseChange>();
-		final ChangeSet enversTemplateChangeSet = findTemplatesAndTagDatabaseChangeSets(changeSets, tagDatabaseChanges);
+		final FindTemplatesAndTagDatabaseChangeSetsResult returnValues = findTemplatesAndTagDatabaseChangeSets(changeSets);
+		final List<TagDatabaseChange> tagDatabaseChanges = returnValues.tagDatabaseChanges;
+
 		if (tagDatabaseChanges.isEmpty())
 		{
 			return;
@@ -73,27 +74,51 @@ public class EnversSupportParser implements ChangeLogParser
 
 		for (int i = 0; i < tagDatabaseChanges.size(); i++)
 		{
-			final String previousVersion = tagDatabaseChanges.get(i).getTag();
-			final String currentVersion = tagDatabaseChanges.size() == i + 1 ? VERSION_NAME_AFTER_LAST_TAG : tagDatabaseChanges.get(i + 1).getTag();
 			final ChangeSet changeSet = tagDatabaseChanges.get(i).getChangeSet();
+			final String previousVersion = tagDatabaseChanges.get(i).getTag();
+			final String currentVersion;
+			if (tagDatabaseChanges.size() == i + 1)
+			{
+				if (returnValues.otherChangeSetsAfterLastTagDatabaseChange)
+				{
+					currentVersion = VERSION_NAME_AFTER_LAST_TAG;
+				}
+				else
+				{
+					// Nothing after this last tag database changeSet, so skip creating an Envers revision (to avoid creating an empty revision).
+					continue;
+				}
+			}
+			else
+			{
+				currentVersion = tagDatabaseChanges.get(i + 1).getTag();
+			}
 
-			appendEnversChangeSet(databaseChangeLog, changeSet, previousVersion, currentVersion, enversTemplateChangeSet);
+			appendEnversChangeSet(databaseChangeLog, changeSet, previousVersion, currentVersion, returnValues.enversTemplateChangeSet);
 		}
 	}
 
-	private ChangeSet findTemplatesAndTagDatabaseChangeSets(final List<ChangeSet> changeSets, final List<TagDatabaseChange> tagDatabaseChanges)
+	private class FindTemplatesAndTagDatabaseChangeSetsResult
 	{
-		ChangeSet enversTemplateChangeSet = null;
+		private ChangeSet enversTemplateChangeSet = null;
+		private List<TagDatabaseChange> tagDatabaseChanges = new LinkedList<TagDatabaseChange>();
+		private boolean otherChangeSetsAfterLastTagDatabaseChange;
+	}
+
+	private FindTemplatesAndTagDatabaseChangeSetsResult findTemplatesAndTagDatabaseChangeSets(final List<ChangeSet> changeSets)
+	{
+		final FindTemplatesAndTagDatabaseChangeSetsResult returnValues = new FindTemplatesAndTagDatabaseChangeSetsResult();
+
 		TagDatabaseChange lastFoundTagDatabaseChange = null;
 		for (int i = 0; i < changeSets.size(); i++)
 		{
 			final ChangeSet changeSet = changeSets.get(i);
-			if (enversTemplateChangeSet == null)
+			if (returnValues.enversTemplateChangeSet == null)
 			{
 				if (changeSet.getAuthor().equals(ENVERS_SUPPORT_CHANGESET_AUTHOR))
 				{
 					// Found the Envers changeSet template - from here on out we can gather TagDatabaseChange instances
-					enversTemplateChangeSet = changeSet;
+					returnValues.enversTemplateChangeSet = changeSet;
 					changeSets.remove(i);
 					i--;
 				}
@@ -103,19 +128,27 @@ public class EnversSupportParser implements ChangeLogParser
 				final TagDatabaseChange tagDatabaseChange = findTagDatabaseChangeInChangeSet(changeSet);
 				if (tagDatabaseChange != null)
 				{
+					// If two subsequent tag database changeSets are found, skip the first one.
 					lastFoundTagDatabaseChange = tagDatabaseChange;
 				}
 				else if (lastFoundTagDatabaseChange != null)
 				{
 					// ChangeSet did not contain a tag database change, so it's a 'normal' changeSet.
 					// Because the lastFoundTagDatabaseChange is not null, we know there will be a 'normal' changeSet after the lastFoundTagDatabaseChange.
-					tagDatabaseChanges.add(lastFoundTagDatabaseChange);
+					returnValues.tagDatabaseChanges.add(lastFoundTagDatabaseChange);
 					lastFoundTagDatabaseChange = null;
 				}
 			}
 		}
 
-		return enversTemplateChangeSet;
+		returnValues.otherChangeSetsAfterLastTagDatabaseChange = lastFoundTagDatabaseChange == null;
+
+		if (lastFoundTagDatabaseChange != null)
+		{
+			returnValues.tagDatabaseChanges.add(lastFoundTagDatabaseChange);
+		}
+
+		return returnValues;
 	}
 
 	private TagDatabaseChange findTagDatabaseChangeInChangeSet(final ChangeSet changeSet)
