@@ -36,4 +36,4 @@ In the template, you can use placeholders. These are replaced by actual values b
 ## By design, sometimes the template changeSet is not added
 When the very last changeSet is a `<tagDatabase>` changeSet, this extension will *not* add a copy of the template changeSet after it. This is specific to the nature of Envers revisions. (If we *would* add a copy of the template changeSet, it would lead to an empty Envers revision.)
 
-Also, when there are multiple subsequent `<tagDatabase>` changeSets, this extension will only add a copy of the template changeSet for the *last* one. This is specific to the nature of Envers revision. (If we would add a copy of the template changeSet for *every* `<tagDatabase>` changeSet, it would lead to empty Envers revisions.)
+Also, when there are multiple subsequent `<tagDatabase>` changeSets, this extension will only add a copy of the template changeSet for the *first* one. This is specific to the nature of Envers revision. (If we would add a copy of the template changeSet for *every* `<tagDatabase>` changeSet, it would lead to empty Envers revisions.)

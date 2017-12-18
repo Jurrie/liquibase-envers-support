@@ -109,7 +109,7 @@ public class EnversSupportParser implements ChangeLogParser
 	{
 		final FindTemplatesAndTagDatabaseChangeSetsResult returnValues = new FindTemplatesAndTagDatabaseChangeSetsResult();
 
-		TagDatabaseChange lastFoundTagDatabaseChange = null;
+		TagDatabaseChange firstFoundTagDatabaseChange = null;
 		for (int i = 0; i < changeSets.size(); i++)
 		{
 			final ChangeSet changeSet = changeSets.get(i);
@@ -128,24 +128,27 @@ public class EnversSupportParser implements ChangeLogParser
 				final TagDatabaseChange tagDatabaseChange = findTagDatabaseChangeInChangeSet(changeSet);
 				if (tagDatabaseChange != null)
 				{
-					// If two subsequent tag database changeSets are found, skip the first one.
-					lastFoundTagDatabaseChange = tagDatabaseChange;
+					// If two subsequent tag database changeSets are found, skip the last one.
+					if (firstFoundTagDatabaseChange == null)
+					{
+						firstFoundTagDatabaseChange = tagDatabaseChange;
+					}
 				}
-				else if (lastFoundTagDatabaseChange != null)
+				else if (firstFoundTagDatabaseChange != null)
 				{
 					// ChangeSet did not contain a tag database change, so it's a 'normal' changeSet.
-					// Because the lastFoundTagDatabaseChange is not null, we know there will be a 'normal' changeSet after the lastFoundTagDatabaseChange.
-					returnValues.tagDatabaseChanges.add(lastFoundTagDatabaseChange);
-					lastFoundTagDatabaseChange = null;
+					// Because the firstFoundTagDatabaseChange is not null, we know there will be a 'normal' changeSet after the firstFoundTagDatabaseChange.
+					returnValues.tagDatabaseChanges.add(firstFoundTagDatabaseChange);
+					firstFoundTagDatabaseChange = null;
 				}
 			}
 		}
 
-		returnValues.otherChangeSetsAfterLastTagDatabaseChange = lastFoundTagDatabaseChange == null;
+		returnValues.otherChangeSetsAfterLastTagDatabaseChange = firstFoundTagDatabaseChange == null;
 
-		if (lastFoundTagDatabaseChange != null)
+		if (firstFoundTagDatabaseChange != null)
 		{
-			returnValues.tagDatabaseChanges.add(lastFoundTagDatabaseChange);
+			returnValues.tagDatabaseChanges.add(firstFoundTagDatabaseChange);
 		}
 
 		return returnValues;
