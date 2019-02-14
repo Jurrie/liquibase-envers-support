@@ -176,7 +176,7 @@ public class EnversSupportParser implements ChangeLogParser
 		final DatabaseChangeLog changeSetChangeLog = afterChangeSet.getChangeLog();
 
 		final String changeSetId = EnversSupportUtils.replacePlaceholders(enversTemplateChangeSet.getId(), previousVersion, currentVersion);
-		final String contextList = StringUtils.join(enversTemplateChangeSet.getContexts(), ",");
+		final String contextList = StringUtils.join(enversTemplateChangeSet.getContexts().getContexts(), ",");
 		final String dbmsList = StringUtils.join(enversTemplateChangeSet.getDbmsSet(), ",");
 
 		final ChangeSet enversChangeSet = new ChangeSet(changeSetId, ENVERS_SUPPORT_CHANGESET_AUTHOR, enversTemplateChangeSet.isAlwaysRun(), enversTemplateChangeSet.isRunOnChange(), afterChangeSet.getFilePath(), contextList, dbmsList, enversTemplateChangeSet.isRunInTransaction(), enversTemplateChangeSet.getObjectQuotingStrategy(), changeSetChangeLog);
@@ -185,7 +185,7 @@ public class EnversSupportParser implements ChangeLogParser
 		{
 			enversChangeSet.addChange(new TemplateSupportChange(change, previousVersion, currentVersion));
 		}
-		for (Change change : enversTemplateChangeSet.getRollBackChanges())
+		for (Change change : enversTemplateChangeSet.getRollback().getChanges())
 		{
 			enversChangeSet.addRollbackChange(new TemplateSupportChange(change, previousVersion, currentVersion));
 		}
