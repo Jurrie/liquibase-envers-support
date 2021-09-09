@@ -1,0 +1,42 @@
+<?xml version="1.0"?> 
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+	<changeSet context="core" id="Envers revision for version @CURRENT_VERSION@" author="liquibase-envers-support plugin">
+		<insert tableName="REVINFO">
+			<column name="ID" valueComputed="${hibernateSequenceNextVal}"/>
+			<column name="TIMESTAMP" valueComputed="${nowTimestamp}"/>
+			<column name="USERNAME" value="Liquibase (version @CURRENT_VERSION@)"/>
+		</insert>
+
+		<rollback>
+			<delete tableName="REVINFO">
+				<where>ID = (SELECT MAX(ID) FROM REVINFO WHERE USERNAME = 'Liquibase (version @CURRENT_VERSION@)')</where>
+			</delete>
+		</rollback>
+	</changeSet>
+
+	<changeSet context="core" id="Test 1" author="JUnit">
+		<insert tableName="TEST">
+			<column name="ID" value="Test 1"/>
+		</insert>
+		<rollback>
+			<delete tableName="TEST">
+				<where>ID = 'Test 1'</where>
+			</delete>
+		</rollback>
+	</changeSet>
+
+	<changeSet author="liquibase-db-release" context="core" id="Tag 1.0.0">
+		<tagDatabase tag="1.0.0"></tagDatabase>
+	</changeSet>
+
+	<changeSet context="ThisContextWillNotBeApplied" id="ThisTestWillNotBeApplied" author="JUnit">
+		<insert tableName="TEST">
+			<column name="ID" value="Test 2"/>
+		</insert>
+		<rollback>
+			<delete tableName="TEST">
+				<where>ID = 'Test 2'</where>
+			</delete>
+		</rollback>
+	</changeSet>
+</databaseChangeLog>
