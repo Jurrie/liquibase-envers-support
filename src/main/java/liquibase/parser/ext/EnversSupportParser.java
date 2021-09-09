@@ -15,6 +15,7 @@ import liquibase.parser.ChangeLogParserFactory;
 import liquibase.resource.ResourceAccessor;
 import liquibase.servicelocator.PrioritizedService;
 import liquibase.util.StringUtils;
+import org.jurr.liquibase.envers.EnversSupportChangeSet;
 import org.jurr.liquibase.envers.TemplateSupportChange;
 
 public class EnversSupportParser implements ChangeLogParser
@@ -50,7 +51,7 @@ public class EnversSupportParser implements ChangeLogParser
 
 			final DatabaseChangeLog databaseChangeLog = previousParser.parse(physicalChangeLogLocation, changeLogParameters, resourceAccessor);
 
-			addEnversChangeSets(databaseChangeLog);
+			addEnversChangeSets(databaseChangeLog, changeLogParameters);
 
 			return databaseChangeLog;
 		}
@@ -60,11 +61,11 @@ public class EnversSupportParser implements ChangeLogParser
 		}
 	}
 
-	private void addEnversChangeSets(final DatabaseChangeLog databaseChangeLog)
+	private void addEnversChangeSets(final DatabaseChangeLog databaseChangeLog, final ChangeLogParameters changeLogParameters)
 	{
 		final List<ChangeSet> changeSets = databaseChangeLog.getChangeSets();
 
-		final FindTemplatesAndTagDatabaseChangeSetsResult returnValues = findTemplatesAndTagDatabaseChangeSets(changeSets);
+		final FindTemplatesAndTagDatabaseChangeSetsResult returnValues = findTemplatesAndTagDatabaseChangeSets(changeLogParameters, changeSets);
 		final List<TagDatabaseChange> tagDatabaseChanges = returnValues.tagDatabaseChanges;
 
 		if (tagDatabaseChanges.isEmpty())
@@ -79,15 +80,7 @@ public class EnversSupportParser implements ChangeLogParser
 			final String currentVersion;
 			if (tagDatabaseChanges.size() == i + 1)
 			{
-				if (returnValues.otherChangeSetsAfterLastTagDatabaseChange)
-				{
-					currentVersion = VERSION_NAME_AFTER_LAST_TAG;
-				}
-				else
-				{
-					// Nothing after this last tag database changeSet, so skip creating an Envers revision (to avoid creating an empty revision).
-					continue;
-				}
+				currentVersion = VERSION_NAME_AFTER_LAST_TAG;
 			}
 			else
 			{
@@ -102,10 +95,9 @@ public class EnversSupportParser implements ChangeLogParser
 	{
 		private ChangeSet enversTemplateChangeSet = null;
 		private List<TagDatabaseChange> tagDatabaseChanges = new LinkedList<TagDatabaseChange>();
-		private boolean otherChangeSetsAfterLastTagDatabaseChange;
 	}
 
-	private FindTemplatesAndTagDatabaseChangeSetsResult findTemplatesAndTagDatabaseChangeSets(final List<ChangeSet> changeSets)
+	private FindTemplatesAndTagDatabaseChangeSetsResult findTemplatesAndTagDatabaseChangeSets(final ChangeLogParameters changeLogParameters, final List<ChangeSet> changeSets)
 	{
 		final FindTemplatesAndTagDatabaseChangeSetsResult returnValues = new FindTemplatesAndTagDatabaseChangeSetsResult();
 
@@ -144,8 +136,6 @@ public class EnversSupportParser implements ChangeLogParser
 			}
 		}
 
-		returnValues.otherChangeSetsAfterLastTagDatabaseChange = firstFoundTagDatabaseChange == null;
-
 		if (firstFoundTagDatabaseChange != null)
 		{
 			returnValues.tagDatabaseChanges.add(firstFoundTagDatabaseChange);
@@ -157,9 +147,8 @@ public class EnversSupportParser implements ChangeLogParser
 	private TagDatabaseChange findTagDatabaseChangeInChangeSet(final ChangeSet changeSet)
 	{
 		final List<Change> changes = changeSet.getChanges();
-		for (int j = 0; j < changes.size(); j++)
+		for (final Change change : changes)
 		{
-			final Change change = changes.get(j);
 			if (change instanceof TagDatabaseChange)
 			{
 				return (TagDatabaseChange) change;
@@ -179,7 +168,7 @@ public class EnversSupportParser implements ChangeLogParser
 		final String contextList = StringUtils.join(enversTemplateChangeSet.getContexts().getContexts(), ",");
 		final String dbmsList = StringUtils.join(enversTemplateChangeSet.getDbmsSet(), ",");
 
-		final ChangeSet enversChangeSet = new ChangeSet(changeSetId, ENVERS_SUPPORT_CHANGESET_AUTHOR, enversTemplateChangeSet.isAlwaysRun(), enversTemplateChangeSet.isRunOnChange(), afterChangeSet.getFilePath(), contextList, dbmsList, enversTemplateChangeSet.isRunInTransaction(), enversTemplateChangeSet.getObjectQuotingStrategy(), changeSetChangeLog);
+		final EnversSupportChangeSet enversChangeSet = new EnversSupportChangeSet(changeSetId, ENVERS_SUPPORT_CHANGESET_AUTHOR, enversTemplateChangeSet.isAlwaysRun(), enversTemplateChangeSet.isRunOnChange(), afterChangeSet.getFilePath(), contextList, dbmsList, enversTemplateChangeSet.isRunInTransaction(), enversTemplateChangeSet.getObjectQuotingStrategy(), changeSetChangeLog);
 
 		for (Change change : enversTemplateChangeSet.getChanges())
 		{
