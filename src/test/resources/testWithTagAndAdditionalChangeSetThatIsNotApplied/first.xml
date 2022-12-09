@@ -1,0 +1,13 @@
+<?xml version="1.0"?> 
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+	<changeSet context="core" id="Test 1" author="JUnit">
+		<insert tableName="TEST">
+			<column name="ID" value="Test 1"/>
+		</insert>
+		<rollback>
+			<delete tableName="TEST">
+				<where>ID = 'Test 1'</where>
+			</delete>
+		</rollback>
+	</changeSet>
+</databaseChangeLog>

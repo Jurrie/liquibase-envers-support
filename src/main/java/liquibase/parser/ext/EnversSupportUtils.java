@@ -11,7 +11,7 @@ public final class EnversSupportUtils
 
 	public static String replacePlaceholders(final String input, final String previousVersion, final String currentVersion)
 	{
-		return input.replaceAll(PLACEHOLDER_PREVIOUS_VERSION, previousVersion).replaceAll(PLACEHOLDER_CURRENT_VERSION, currentVersion);
+		return input.replace(PLACEHOLDER_PREVIOUS_VERSION, previousVersion).replace(PLACEHOLDER_CURRENT_VERSION, currentVersion);
 	}
 
 	public static Object replacePlaceholders(final Object input, final String previousVersion, final String currentVersion)

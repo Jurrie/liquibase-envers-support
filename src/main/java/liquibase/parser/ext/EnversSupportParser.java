@@ -30,7 +30,7 @@ public class EnversSupportParser implements ChangeLogParser
 	}
 
 	@Override
-	public DatabaseChangeLog parse(String physicalChangeLogLocation, ChangeLogParameters changeLogParameters, ResourceAccessor resourceAccessor) throws ChangeLogParseException
+	public DatabaseChangeLog parse(final String physicalChangeLogLocation, final ChangeLogParameters changeLogParameters, final ResourceAccessor resourceAccessor) throws ChangeLogParseException
 	{
 		// Unregister ourselves, let the previous parser parse the whole database changelog.
 		// If we do not do this, we will be called again for included changelog files.
@@ -51,7 +51,7 @@ public class EnversSupportParser implements ChangeLogParser
 
 			final DatabaseChangeLog databaseChangeLog = previousParser.parse(physicalChangeLogLocation, changeLogParameters, resourceAccessor);
 
-			addEnversChangeSets(databaseChangeLog, changeLogParameters);
+			addEnversChangeSets(databaseChangeLog);
 
 			return databaseChangeLog;
 		}
@@ -61,24 +61,20 @@ public class EnversSupportParser implements ChangeLogParser
 		}
 	}
 
-	private void addEnversChangeSets(final DatabaseChangeLog databaseChangeLog, final ChangeLogParameters changeLogParameters)
+	private void addEnversChangeSets(final DatabaseChangeLog databaseChangeLog)
 	{
 		final List<ChangeSet> changeSets = databaseChangeLog.getChangeSets();
 
-		final FindTemplatesAndTagDatabaseChangeSetsResult returnValues = findTemplatesAndTagDatabaseChangeSets(changeLogParameters, changeSets);
-		final List<TagDatabaseChange> tagDatabaseChanges = returnValues.tagDatabaseChanges;
-
-		if (tagDatabaseChanges.isEmpty())
-		{
-			return;
-		}
+		final FindTemplatesAndTagDatabaseChangeSetsResult returnValues = findTemplatesAndTagDatabaseChangeSets(changeSets);
+		final LinkedList<TagDatabaseChange> tagDatabaseChanges = returnValues.tagDatabaseChanges;
 
 		for (int i = 0; i < tagDatabaseChanges.size(); i++)
 		{
-			final ChangeSet changeSet = tagDatabaseChanges.get(i).getChangeSet();
-			final String previousVersion = tagDatabaseChanges.get(i).getTag();
+			final TagDatabaseChange tagDatabaseChange = tagDatabaseChanges.get(i);
+			final ChangeSet changeSet = tagDatabaseChange.getChangeSet();
+			final String previousVersion = tagDatabaseChange.getTag();
 			final String currentVersion;
-			if (tagDatabaseChanges.size() == i + 1)
+			if (tagDatabaseChanges.getLast().equals(tagDatabaseChange))
 			{
 				currentVersion = VERSION_NAME_AFTER_LAST_TAG;
 			}
@@ -94,17 +90,17 @@ public class EnversSupportParser implements ChangeLogParser
 	private class FindTemplatesAndTagDatabaseChangeSetsResult
 	{
 		private ChangeSet enversTemplateChangeSet = null;
-		private List<TagDatabaseChange> tagDatabaseChanges = new LinkedList<TagDatabaseChange>();
+		private LinkedList<TagDatabaseChange> tagDatabaseChanges = new LinkedList<TagDatabaseChange>();
 	}
 
-	private FindTemplatesAndTagDatabaseChangeSetsResult findTemplatesAndTagDatabaseChangeSets(final ChangeLogParameters changeLogParameters, final List<ChangeSet> changeSets)
+	private FindTemplatesAndTagDatabaseChangeSetsResult findTemplatesAndTagDatabaseChangeSets(final List<ChangeSet> changeSets)
 	{
 		final FindTemplatesAndTagDatabaseChangeSetsResult returnValues = new FindTemplatesAndTagDatabaseChangeSetsResult();
 
-		TagDatabaseChange firstFoundTagDatabaseChange = null;
 		for (int i = 0; i < changeSets.size(); i++)
 		{
 			final ChangeSet changeSet = changeSets.get(i);
+
 			if (returnValues.enversTemplateChangeSet == null)
 			{
 				if (changeSet.getAuthor().equals(ENVERS_SUPPORT_CHANGESET_AUTHOR))
@@ -120,25 +116,9 @@ public class EnversSupportParser implements ChangeLogParser
 				final TagDatabaseChange tagDatabaseChange = findTagDatabaseChangeInChangeSet(changeSet);
 				if (tagDatabaseChange != null)
 				{
-					// If two subsequent tag database changeSets are found, skip the last one.
-					if (firstFoundTagDatabaseChange == null)
-					{
-						firstFoundTagDatabaseChange = tagDatabaseChange;
-					}
-				}
-				else if (firstFoundTagDatabaseChange != null)
-				{
-					// ChangeSet did not contain a tag database change, so it's a 'normal' changeSet.
-					// Because the firstFoundTagDatabaseChange is not null, we know there will be a 'normal' changeSet after the firstFoundTagDatabaseChange.
-					returnValues.tagDatabaseChanges.add(firstFoundTagDatabaseChange);
-					firstFoundTagDatabaseChange = null;
+					returnValues.tagDatabaseChanges.add(tagDatabaseChange);
 				}
 			}
-		}
-
-		if (firstFoundTagDatabaseChange != null)
-		{
-			returnValues.tagDatabaseChanges.add(firstFoundTagDatabaseChange);
 		}
 
 		return returnValues;
@@ -190,7 +170,7 @@ public class EnversSupportParser implements ChangeLogParser
 	}
 
 	@Override
-	public boolean supports(String changeLogFile, ResourceAccessor resourceAccessor)
+	public boolean supports(final String changeLogFile, final ResourceAccessor resourceAccessor)
 	{
 		final ChangeLogParserFactory changeLogParserFactory = ChangeLogParserFactory.getInstance();
 		changeLogParserFactory.unregister(this);

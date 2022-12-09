@@ -38,6 +38,56 @@ public class EnverSupportParserTest
 	}
 
 	@Test
+	public void testWithMultipleEmptyTagsAndAdditionalChangeSet() throws Exception
+	{
+		final Path databaseChangelogCsvFile = Files.createTempFile(EnverSupportParserTest.class.getSimpleName(), ".JUNIT.csv");
+
+		final List<String> updateChangeSets = getChangeSetsRunByUpdate(Paths.get("src/test/resources/testWithMultipleEmptyTagsAndAdditionalChangeSet"), "master.xml", databaseChangelogCsvFile);
+		assertEquals("master.xml::Test 1::JUnit", updateChangeSets.get(0));
+		assertEquals("master.xml::Tag 1.0.0::liquibase-db-release", updateChangeSets.get(1));
+		assertEquals("master.xml::Tag 2.0.0::liquibase-db-release", updateChangeSets.get(2));
+		assertEquals("master.xml::Tag 3.0.0::liquibase-db-release", updateChangeSets.get(3));
+		assertEquals("master.xml::Envers revision for version develop::liquibase-envers-support plugin", updateChangeSets.get(4));
+		assertEquals("master.xml::Test 2::JUnit", updateChangeSets.get(5));
+		assertEquals(6, updateChangeSets.size());
+
+		final List<String> rollbackChangeSets = getChangeSetsRunByRollback(Paths.get("src/test/resources/testWithMultipleEmptyTagsAndAdditionalChangeSet"), "master.xml", databaseChangelogCsvFile);
+		assertEquals("master.xml::Test 2::JUnit", rollbackChangeSets.get(0));
+		assertEquals("master.xml::Envers revision for version develop::liquibase-envers-support plugin", rollbackChangeSets.get(1));
+		assertEquals("master.xml::Tag 3.0.0::liquibase-db-release", rollbackChangeSets.get(2));
+		assertEquals("master.xml::Tag 2.0.0::liquibase-db-release", rollbackChangeSets.get(3));
+		assertEquals("master.xml::Tag 1.0.0::liquibase-db-release", rollbackChangeSets.get(4));
+		assertEquals("master.xml::Test 1::JUnit", rollbackChangeSets.get(5));
+		assertEquals(6, rollbackChangeSets.size());
+	}
+
+	@Test
+	public void testWithMultipleTags() throws Exception
+	{
+		final Path databaseChangelogCsvFile = Files.createTempFile(EnverSupportParserTest.class.getSimpleName(), ".JUNIT.csv");
+
+		final List<String> updateChangeSets = getChangeSetsRunByUpdate(Paths.get("src/test/resources/testWithMultipleTags"), "master.xml", databaseChangelogCsvFile);
+		assertEquals("master.xml::Test 1::JUnit", updateChangeSets.get(0));
+		assertEquals("master.xml::Tag 1.0.0::liquibase-db-release", updateChangeSets.get(1));
+		assertEquals("master.xml::Envers revision for version 2.0.0::liquibase-envers-support plugin", updateChangeSets.get(2));
+		assertEquals("master.xml::Test 2::JUnit", updateChangeSets.get(3));
+		assertEquals("master.xml::Tag 2.0.0::liquibase-db-release", updateChangeSets.get(4));
+		assertEquals("master.xml::Envers revision for version develop::liquibase-envers-support plugin", updateChangeSets.get(5));
+		assertEquals("master.xml::Test 3::JUnit", updateChangeSets.get(6));
+		assertEquals(7, updateChangeSets.size());
+
+		final List<String> rollbackChangeSets = getChangeSetsRunByRollback(Paths.get("src/test/resources/testWithMultipleTags"), "master.xml", databaseChangelogCsvFile);
+		assertEquals("master.xml::Test 3::JUnit", rollbackChangeSets.get(0));
+		assertEquals("master.xml::Envers revision for version develop::liquibase-envers-support plugin", rollbackChangeSets.get(1));
+		assertEquals("master.xml::Tag 2.0.0::liquibase-db-release", rollbackChangeSets.get(2));
+		assertEquals("master.xml::Test 2::JUnit", rollbackChangeSets.get(3));
+		assertEquals("master.xml::Envers revision for version 2.0.0::liquibase-envers-support plugin", rollbackChangeSets.get(4));
+		assertEquals("master.xml::Tag 1.0.0::liquibase-db-release", rollbackChangeSets.get(5));
+		assertEquals("master.xml::Test 1::JUnit", rollbackChangeSets.get(6));
+		assertEquals(7, rollbackChangeSets.size());
+	}
+
+	@Test
 	public void testWithTagBeforeEnverSupportChangeSet() throws Exception
 	{
 		final Path databaseChangelogCsvFile = Files.createTempFile(EnverSupportParserTest.class.getSimpleName(), ".JUNIT.csv");
@@ -71,12 +121,14 @@ public class EnverSupportParserTest
 		final List<String> updateChangeSets = getChangeSetsRunByUpdate(Paths.get("src/test/resources/testWithTagNoAdditionalChangeSet"), "master.xml", databaseChangelogCsvFile);
 		assertEquals("master.xml::Test 1::JUnit", updateChangeSets.get(0));
 		assertEquals("master.xml::Tag 1.0.0::liquibase-db-release", updateChangeSets.get(1));
-		assertEquals(2, updateChangeSets.size());
+		assertEquals("master.xml::Tag 2.0.0::liquibase-db-release", updateChangeSets.get(2));
+		assertEquals(3, updateChangeSets.size());
 
 		final List<String> rollbackChangeSets = getChangeSetsRunByRollback(Paths.get("src/test/resources/testWithTagNoAdditionalChangeSet"), "master.xml", databaseChangelogCsvFile);
-		assertEquals("master.xml::Tag 1.0.0::liquibase-db-release", rollbackChangeSets.get(0));
-		assertEquals("master.xml::Test 1::JUnit", rollbackChangeSets.get(1));
-		assertEquals(2, rollbackChangeSets.size());
+		assertEquals("master.xml::Tag 2.0.0::liquibase-db-release", rollbackChangeSets.get(0));
+		assertEquals("master.xml::Tag 1.0.0::liquibase-db-release", rollbackChangeSets.get(1));
+		assertEquals("master.xml::Test 1::JUnit", rollbackChangeSets.get(2));
+		assertEquals(3, rollbackChangeSets.size());
 	}
 
 	@Test
@@ -100,6 +152,24 @@ public class EnverSupportParserTest
 	}
 
 	@Test
+	public void testWithTagAndAdditionalChangeSetThatIsNotApplied() throws Exception
+	{
+		final Path databaseChangelogCsvFile = Files.createTempFile(EnverSupportParserTest.class.getSimpleName(), ".JUNIT.csv");
+
+		final List<String> updateChangeSets = getChangeSetsRunByUpdate(Paths.get("src/test/resources/testWithTagAndAdditionalChangeSetThatIsNotApplied"), "master.xml", databaseChangelogCsvFile, "core");
+		assertEquals("first.xml::Test 1::JUnit", updateChangeSets.get(0));
+		assertEquals("master.xml::Tag 1.0.0::liquibase-db-release", updateChangeSets.get(1));
+		assertEquals("master.xml::Tag 2.0.0::liquibase-db-release", updateChangeSets.get(2));
+		assertEquals(3, updateChangeSets.size());
+
+		final List<String> rollbackChangeSets = getChangeSetsRunByRollback(Paths.get("src/test/resources/testWithTagAndAdditionalChangeSetThatIsNotApplied"), "master.xml", databaseChangelogCsvFile, "core");
+		assertEquals("master.xml::Tag 2.0.0::liquibase-db-release", rollbackChangeSets.get(0));
+		assertEquals("master.xml::Tag 1.0.0::liquibase-db-release", rollbackChangeSets.get(1));
+		assertEquals("first.xml::Test 1::JUnit", rollbackChangeSets.get(2));
+		assertEquals(3, rollbackChangeSets.size());
+	}
+
+	@Test
 	public void testWithTwoAdjacentTags() throws Exception
 	{
 		final Path databaseChangelogCsvFile = Files.createTempFile(EnverSupportParserTest.class.getSimpleName(), ".JUNIT.csv");
@@ -107,15 +177,15 @@ public class EnverSupportParserTest
 		final List<String> updateChangeSets = getChangeSetsRunByUpdate(Paths.get("src/test/resources/testWithTwoAdjacentTags"), "master.xml", databaseChangelogCsvFile);
 		assertEquals("master.xml::Test 1::JUnit", updateChangeSets.get(0));
 		assertEquals("master.xml::Tag 1.0.0::liquibase-db-release", updateChangeSets.get(1));
-		assertEquals("master.xml::Envers revision for version develop::liquibase-envers-support plugin", updateChangeSets.get(2));
-		assertEquals("master.xml::Tag 1.0.1::liquibase-db-release", updateChangeSets.get(3));
+		assertEquals("master.xml::Tag 1.0.1::liquibase-db-release", updateChangeSets.get(2));
+		assertEquals("master.xml::Envers revision for version develop::liquibase-envers-support plugin", updateChangeSets.get(3));
 		assertEquals("master.xml::Test 2::JUnit", updateChangeSets.get(4));
 		assertEquals(5, updateChangeSets.size());
 
 		final List<String> rollbackChangeSets = getChangeSetsRunByRollback(Paths.get("src/test/resources/testWithTwoAdjacentTags"), "master.xml", databaseChangelogCsvFile);
 		assertEquals("master.xml::Test 2::JUnit", rollbackChangeSets.get(0));
-		assertEquals("master.xml::Tag 1.0.1::liquibase-db-release", rollbackChangeSets.get(1));
-		assertEquals("master.xml::Envers revision for version develop::liquibase-envers-support plugin", rollbackChangeSets.get(2));
+		assertEquals("master.xml::Envers revision for version develop::liquibase-envers-support plugin", rollbackChangeSets.get(1));
+		assertEquals("master.xml::Tag 1.0.1::liquibase-db-release", rollbackChangeSets.get(2));
 		assertEquals("master.xml::Tag 1.0.0::liquibase-db-release", rollbackChangeSets.get(3));
 		assertEquals("master.xml::Test 1::JUnit", rollbackChangeSets.get(4));
 		assertEquals(5, rollbackChangeSets.size());

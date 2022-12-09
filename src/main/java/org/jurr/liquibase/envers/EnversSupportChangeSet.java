@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import liquibase.RuntimeEnvironment;
+import liquibase.change.Change;
+import liquibase.change.core.TagDatabaseChange;
 import liquibase.changelog.ChangeSet;
 import liquibase.changelog.DatabaseChangeLog;
 import liquibase.changelog.filter.ChangeSetFilter;
@@ -29,7 +31,8 @@ public class EnversSupportChangeSet extends ChangeSet
 	@Override
 	public ExecType execute(final DatabaseChangeLog databaseChangeLog, final ChangeExecListener listener, final Database database) throws MigrationFailedException
 	{
-		if (thereIsAnAppliedChangeSetAfterUs(databaseChangeLog))
+		final ChangeSet firstAppliedChangeSetAfterUs = getFirstAppliedChangeSetAfterUs(databaseChangeLog);
+		if (firstAppliedChangeSetAfterUs != null && !isTagDatabaseChangeSet(firstAppliedChangeSetAfterUs))
 		{
 			return super.execute(databaseChangeLog, listener, database);
 		}
@@ -42,7 +45,8 @@ public class EnversSupportChangeSet extends ChangeSet
 	@Override
 	public ExecType execute(final DatabaseChangeLog databaseChangeLog, final Database database) throws MigrationFailedException
 	{
-		if (thereIsAnAppliedChangeSetAfterUs(databaseChangeLog))
+		final ChangeSet firstAppliedChangeSetAfterUs = getFirstAppliedChangeSetAfterUs(databaseChangeLog);
+		if (firstAppliedChangeSetAfterUs != null && !isTagDatabaseChangeSet(firstAppliedChangeSetAfterUs))
 		{
 			return super.execute(databaseChangeLog, database);
 		}
@@ -52,7 +56,20 @@ public class EnversSupportChangeSet extends ChangeSet
 		}
 	}
 
-	private boolean thereIsAnAppliedChangeSetAfterUs(final DatabaseChangeLog databaseChangeLog) throws MigrationFailedException
+	private boolean isTagDatabaseChangeSet(final ChangeSet changeSet)
+	{
+		final List<Change> changes = changeSet.getChanges();
+		for (final Change change : changes)
+		{
+			if (change instanceof TagDatabaseChange)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private ChangeSet getFirstAppliedChangeSetAfterUs(final DatabaseChangeLog databaseChangeLog) throws MigrationFailedException
 	{
 		final List<ChangeSet> changeSets = databaseChangeLog.getChangeSets();
 
@@ -61,11 +78,11 @@ public class EnversSupportChangeSet extends ChangeSet
 		{
 			if (changeSetWillBeApplied(databaseChangeLog, changeSets.get(i)))
 			{
-				return true;
+				return changeSets.get(i);
 			}
 		}
 
-		return false;
+		return null;
 	}
 
 	private boolean changeSetWillBeApplied(final DatabaseChangeLog databaseChangeLog, final ChangeSet changeSet) throws MigrationFailedException
